@@ -18,7 +18,7 @@ class EmployeeCleanupApp(tk.Tk):
         self.output_file = tk.StringVar()
 
         self.employee_sheet = tk.StringVar(value="Sheet1")
-        self.records_sheet = tk.StringVar(value="Sheet1")
+        self.records_sheet = tk.StringVar(value="Profund")
 
         self.employee_id_column = tk.StringVar(value="Employee ID")
         self.employee_status = tk.StringVar(value="Employee Status")

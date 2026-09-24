@@ -299,7 +299,7 @@ Default values:
 
 ```text
 Employee sheet:       Sheet1
-Records sheet:        Sheet1
+Records sheet:        Profund
 
 Employee ID column:        Employee ID
 Employee status column:   Employee Status
