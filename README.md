@@ -2,7 +2,7 @@
 
 A Python-based Windows desktop application for processing employee Excel records.
 
-The application identifies terminated employees from an employee master Excel file and cleans their corresponding records from another Excel file.
+The application identifies terminated employees in the Head Count workbook and cleans their matching records in the Classic User workbook.
 
 ## Features
 
@@ -151,8 +151,8 @@ The user simply:
 
 1. Receives `EmployeeCleanupTool.exe`
 2. Double-clicks the EXE
-3. Selects the Employee Master Excel file
-4. Selects the Employee Records Excel file
+3. Selects the Head Count workbook
+4. Selects the Classic User workbook
 5. Selects the output location
 6. Clicks `PROCESS FILES`
 
@@ -162,7 +162,7 @@ The user simply:
 
 The application requires two Excel files.
 
-## 1. Employee Master File
+## 1. Head Count Workbook
 
 This file contains employee information.
 
@@ -174,13 +174,13 @@ Example:
 | 1002 | Jane Doe | Terminated | jane@example.com |
 | 1003 | Mike Jones | On Leave | mike@example.com |
 
-The employee master file has a title row in row 1 and its column headers in row 2. Employee data starts on row 3. The application looks for employees where:
+The Head Count workbook has a title row in row 1 and its column headers in row 2. Employee data starts on row 3. The application looks for employees where:
 
 ```text
 Employee Status = Terminated
 ```
 
-## 2. Employee Records File
+## 2. Classic User Workbook
 
 This file contains one or more records for each employee.
 
@@ -225,10 +225,10 @@ Only the records `Id` remains.
 
 # Matching Logic
 
-The application matches employee records by comparing the employee master's `Employee ID` with the records workbook's `Emp_ID` value. The comparison ignores letter case and leading or trailing spaces.
+The application matches Classic User records by comparing the Head Count `Employee ID` with the Classic User `Emp_ID` value. The comparison ignores letter case and leading or trailing spaces.
 
 ```text
-Employee master `Employee ID` = Records `Emp_ID`
+Head Count `Employee ID` = Classic User `Emp_ID`
 ```
 
 Only employees whose `Employee Status` value is `Terminated` are processed. Values such as `Active` and `On Leave` are not processed.
@@ -259,20 +259,20 @@ If the requirement changes to keep the record with the latest date/timestamp, th
 
 # Non-Terminated Employees
 
-Records belonging to non-terminated employees are not modified.
+Classic User records belonging to non-terminated employees are not modified.
 
 ---
 
 # Output
 
-The original records Excel file is never overwritten.
+The original Classic User workbook is never overwritten.
 
 Example:
 
 ```text
-Employee_Records.xlsx
+Classic_User.xlsx
         ↓
-Employee_Records_Cleaned.xlsx
+Classic_User_Cleaned.xlsx
 ```
 
 The output workbook also contains a `Processing Log` sheet.
@@ -285,11 +285,11 @@ The log contains information such as:
 
 | Metric | Value |
 |---|---:|
-| Terminated employees in employee file | 30 |
-| Terminated employees found in records | 30 |
-| Records deleted | 199 |
-| Records retained | 30 |
-| Terminated employees not found in records | 0 |
+| Terminated employees in Head Count | 30 |
+| Terminated employees found in Classic User | 30 |
+| Classic User rows deleted | 199 |
+| Classic User rows retained | 30 |
+| Terminated employees not found in Classic User | 0 |
 
 ---
 
@@ -298,13 +298,13 @@ The log contains information such as:
 Default values:
 
 ```text
-Employee sheet:       Sheet1
-Records sheet:        Profund
+Head Count worksheet:  Sheet1
+Classic User worksheet: Profund
 
-Employee ID column:        Employee ID
-Employee status column:   Employee Status
-Records employee ID:      Emp_ID
-Records Id column to keep: Id
+Head Count employee ID header:       Employee ID
+Head Count status header:            Employee Status
+Classic User employee ID header:     Emp_ID
+Classic User ID header to keep:      Id
 ```
 
 These values can be changed from the application UI.

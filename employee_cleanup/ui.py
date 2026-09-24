@@ -13,17 +13,17 @@ class EmployeeCleanupApp(tk.Tk):
         self.title(APP_TITLE)
         self.state("zoomed")
 
-        self.employee_file = tk.StringVar()
-        self.records_file = tk.StringVar()
-        self.output_file = tk.StringVar()
+        self.head_count_path = tk.StringVar()
+        self.classic_user_path = tk.StringVar()
+        self.output_path = tk.StringVar()
 
-        self.employee_sheet = tk.StringVar(value="Sheet1")
-        self.records_sheet = tk.StringVar(value="Profund")
+        self.head_count_sheet_name = tk.StringVar(value="Sheet1")
+        self.classic_user_sheet_name = tk.StringVar(value="Profund")
 
-        self.employee_id_column = tk.StringVar(value="Employee ID")
-        self.employee_status = tk.StringVar(value="Employee Status")
-        self.records_employee_id_column = tk.StringVar(value="Emp_ID")
-        self.records_id = tk.StringVar(value="Id")
+        self.head_count_employee_id_header = tk.StringVar(value="Employee ID")
+        self.head_count_status_header = tk.StringVar(value="Employee Status")
+        self.classic_user_employee_id_header = tk.StringVar(value="Emp_ID")
+        self.classic_user_id_header = tk.StringVar(value="Id")
 
         self.status = tk.StringVar(value="Ready")
 
@@ -42,29 +42,33 @@ class EmployeeCleanupApp(tk.Tk):
         ttk.Label(
             root,
             text=(
-                "Find terminated employees, remove their older duplicate records, "
-                "and blank the final record."
+                "Find terminated employees in Head Count and clean matching records "
+                "in Classic User."
             ),
             wraplength=820,
         ).pack(anchor="w", pady=(5, 18))
 
-        files = ttk.LabelFrame(root, text="Excel files", padding=12)
+        files = ttk.LabelFrame(root, text="Workbooks", padding=12)
         files.pack(fill="x", pady=6)
 
-        self._file_row(files, "Employee master", self.employee_file, self.select_employee)
-        self._file_row(files, "Employee records", self.records_file, self.select_records)
-        self._file_row(files, "Output file", self.output_file, self.select_output)
+        self._file_row(
+            files, "Head Count workbook", self.head_count_path, self.select_head_count
+        )
+        self._file_row(
+            files, "Classic User workbook", self.classic_user_path, self.select_classic_user
+        )
+        self._file_row(files, "Cleaned workbook", self.output_path, self.select_output)
 
         config = ttk.LabelFrame(root, text="Configuration", padding=12)
         config.pack(fill="x", pady=10)
 
         fields = [
-            ("Employee sheet", self.employee_sheet),
-            ("Records sheet", self.records_sheet),
-            ("Employee ID column", self.employee_id_column),
-            ("Employee status column", self.employee_status),
-            ("Records employee ID column", self.records_employee_id_column),
-            ("Records Id column to keep", self.records_id),
+            ("Head Count worksheet", self.head_count_sheet_name),
+            ("Classic User worksheet", self.classic_user_sheet_name),
+            ("Head Count employee ID header", self.head_count_employee_id_header),
+            ("Head Count status header", self.head_count_status_header),
+            ("Classic User employee ID header", self.classic_user_employee_id_header),
+            ("Classic User ID header to keep", self.classic_user_id_header),
         ]
 
         for i, (label, variable) in enumerate(fields):
@@ -91,13 +95,11 @@ class EmployeeCleanupApp(tk.Tk):
         ttk.Label(
             rules,
             text=(
-                "1. Select employees whose Employee Status is Terminated.\n"
-                "2. Match Employee ID to the records Emp_ID column.\n"
-                "3. For each terminated employee, keep only the physically last matching row.\n"
-                "4. Delete earlier matching rows.\n"
-                "5. Keep only the records Id value in the retained row.\n"
-                "6. Add a Processing Log sheet.\n"
-                "7. Never modify the original input files."
+                "1. Select Head Count employees with status Terminated.\n"
+                "2. Match Head Count Employee ID to Classic User Emp_ID.\n"
+                "3. Keep the last matching Classic User row and delete earlier matches.\n"
+                "4. Keep its Id and clear the other values.\n"
+                "5. Add a Processing Log worksheet. Original workbooks are not changed."
             ),
             justify="left",
         ).pack(anchor="w")
@@ -107,7 +109,7 @@ class EmployeeCleanupApp(tk.Tk):
 
         self.process_button = ttk.Button(
             buttons,
-            text="PROCESS FILES",
+            text="Process Workbooks",
             command=self.process,
         )
         self.process_button.pack(side="left")
@@ -141,60 +143,60 @@ class EmployeeCleanupApp(tk.Tk):
             command=command,
         ).pack(side="right")
 
-    def select_employee(self):
+    def select_head_count(self):
         path = filedialog.askopenfilename(
-            title="Select employee master file",
+            title="Select the Head Count workbook",
             filetypes=[
                 ("Excel files", "*.xlsx *.xlsm"),
                 ("All files", "*.*"),
             ],
         )
         if path:
-            self.employee_file.set(path)
+            self.head_count_path.set(path)
 
-    def select_records(self):
+    def select_classic_user(self):
         path = filedialog.askopenfilename(
-            title="Select employee records file",
+            title="Select the Classic User workbook",
             filetypes=[
                 ("Excel files", "*.xlsx *.xlsm"),
                 ("All files", "*.*"),
             ],
         )
         if path:
-            self.records_file.set(path)
+            self.classic_user_path.set(path)
 
     def select_output(self):
         path = filedialog.asksaveasfilename(
-            title="Save cleaned Excel file",
+            title="Save cleaned Classic User workbook",
             defaultextension=".xlsx",
-            initialfile="employee_records_cleaned.xlsx",
+            initialfile="classic_user_cleaned.xlsx",
             filetypes=[("Excel files", "*.xlsx")],
         )
         if path:
-            self.output_file.set(path)
+            self.output_path.set(path)
 
     def reset(self):
-        self.employee_file.set("")
-        self.records_file.set("")
-        self.output_file.set("")
+        self.head_count_path.set("")
+        self.classic_user_path.set("")
+        self.output_path.set("")
         self.status.set("Ready")
 
     def process(self):
         try:
-            if not self.employee_file.get():
-                raise ValueError("Select the employee master Excel file.")
-            if not self.records_file.get():
-                raise ValueError("Select the employee records Excel file.")
+            if not self.head_count_path.get():
+                raise ValueError("Choose the Head Count workbook first.")
+            if not self.classic_user_path.get():
+                raise ValueError("Choose the Classic User workbook first.")
 
-            output = self.output_file.get()
+            output = self.output_path.get()
 
             if not output:
                 default_name = (
-                    Path(self.records_file.get()).stem
+                    Path(self.classic_user_path.get()).stem
                     + "_cleaned.xlsx"
                 )
                 output = filedialog.asksaveasfilename(
-                    title="Save cleaned Excel file",
+                    title="Save cleaned Classic User workbook",
                     defaultextension=".xlsx",
                     initialfile=default_name,
                     filetypes=[("Excel files", "*.xlsx")],
@@ -203,7 +205,7 @@ class EmployeeCleanupApp(tk.Tk):
                 if not output:
                     return
 
-                self.output_file.set(output)
+                self.output_path.set(output)
 
             self.process_button.config(state="disabled")
             self.status.set("Processing...")
@@ -211,15 +213,15 @@ class EmployeeCleanupApp(tk.Tk):
             self.update_idletasks()
 
             result = process_files(
-                employee_file=self.employee_file.get(),
-                records_file=self.records_file.get(),
-                output_file=output,
-                employee_sheet=self.employee_sheet.get(),
-                records_sheet=self.records_sheet.get(),
-                employee_id_column=self.employee_id_column.get(),
-                employee_status=self.employee_status.get(),
-                records_employee_id_column=self.records_employee_id_column.get(),
-                records_id=self.records_id.get(),
+                head_count_path=self.head_count_path.get(),
+                classic_user_path=self.classic_user_path.get(),
+                output_path=output,
+                head_count_sheet_name=self.head_count_sheet_name.get(),
+                classic_user_sheet_name=self.classic_user_sheet_name.get(),
+                head_count_employee_id_header=self.head_count_employee_id_header.get(),
+                head_count_status_header=self.head_count_status_header.get(),
+                classic_user_employee_id_header=self.classic_user_employee_id_header.get(),
+                classic_user_id_header=self.classic_user_id_header.get(),
             )
 
             self.status.set("Processing completed successfully.")
@@ -228,10 +230,10 @@ class EmployeeCleanupApp(tk.Tk):
                 "Completed",
                 "Processing completed successfully.\n\n"
                 f"Terminated employees: {result['terminated']}\n"
-                f"Found in records: {result['matched']}\n"
-                f"Records deleted: {result['deleted']}\n"
-                f"Records retained and blanked: {result['blanked']}\n"
-                f"Not found in records: {result['not_found']}\n\n"
+                f"Found in Classic User: {result['matched']}\n"
+                f"Classic User rows deleted: {result['deleted']}\n"
+                f"Classic User rows retained and cleared: {result['blanked']}\n"
+                f"Not found in Classic User: {result['not_found']}\n\n"
                 f"Output:\n{output}",
             )
 
