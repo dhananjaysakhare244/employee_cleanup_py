@@ -8,11 +8,11 @@ The application identifies terminated employees from an employee master Excel fi
 
 - Read employee information from an Excel workbook
 - Identify terminated employees
-- Match terminated employees using User ID
-- Use Email as a fallback when User ID does not match
+- Select terminated employees where `Employee Status` is `Terminated`
+- Match terminated employees by comparing master `Employee ID` with records `Emp_ID`
 - Find all records belonging to terminated employees
 - Delete all records except the last record
-- Keep the User ID in the last record
+- Keep the records `Id` value in the last record
 - Clear all other columns in the last record
 - Leave non-terminated employees unchanged
 - Create a Processing Log sheet
@@ -168,16 +168,16 @@ This file contains employee information.
 
 Example:
 
-| User ID | Email | First Name | Last Name | Terminated |
-|---:|---|---|---|---|
-| 1001 | john@example.com | John | Smith | No |
-| 1002 | jane@example.com | Jane | Doe | Yes |
-| 1003 | mike@example.com | Mike | Jones | No |
+| Employee ID | Full Name | Employee Status | Email - Primary Work |
+|---:|---|---|---|
+| 1001 | John Smith | Active | john@example.com |
+| 1002 | Jane Doe | Terminated | jane@example.com |
+| 1003 | Mike Jones | On Leave | mike@example.com |
 
-The application looks for employees where:
+The employee master file has a title row in row 1 and its column headers in row 2. Employee data starts on row 3. The application looks for employees where:
 
 ```text
-Terminated = Yes
+Employee Status = Terminated
 ```
 
 ## 2. Employee Records File
@@ -186,11 +186,11 @@ This file contains one or more records for each employee.
 
 Example:
 
-| User ID | Email | Date | Status | Description |
-|---:|---|---|---|---|
-| 1002 | jane@example.com | 2026-01-01 | Active | Record 1 |
-| 1002 | jane@example.com | 2026-02-01 | Updated | Record 2 |
-| 1002 | jane@example.com | 2026-03-01 | Updated | Record 3 |
+| Id | User/Email/Profile | Database | Access Level | Email | Emp_ID |
+|---:|---|---|---|---|---:|
+| 21 | Jane Doe | System A | User | jane@example.com | 1002 |
+| 22 | Jane Doe | System B | Admin | jane@example.com | 1002 |
+| 23 | Jane Doe | System C | User | jane@example.com | 1002 |
 
 ---
 
@@ -201,43 +201,37 @@ For every terminated employee:
 1. Find all records for the employee.
 2. Keep the physically last matching record.
 3. Delete all previous matching records.
-4. Keep the User ID in the retained record.
+4. If exactly one row matches, keep that row; if multiple rows match, keep the physically last row and delete the earlier matching rows.
 5. Clear every other column in the retained record.
 6. Leave non-terminated employees unchanged.
 
 ### Before
 
 ```text
-1002 | jane@example.com | 2026-01-01 | Active  | Record 1
-1002 | jane@example.com | 2026-02-01 | Updated | Record 2
-1002 | jane@example.com | 2026-03-01 | Updated | Record 3
+21 | Jane Doe | System A | User | jane@example.com | 1002
+22 | Jane Doe | System B | Admin | jane@example.com | 1002
+23 | Jane Doe | System C | User | jane@example.com | 1002
 ```
 
 ### After
 
 ```text
-1002 | | | |
+23 | | | | | |
 ```
 
-Only the User ID remains.
+Only the records `Id` remains.
 
 ---
 
 # Matching Logic
 
-The application uses the following priority:
+The application matches employee records by comparing the employee master's `Employee ID` with the records workbook's `Emp_ID` value. The comparison ignores letter case and leading or trailing spaces.
 
 ```text
-User ID
-   ↓
-If User ID doesn't match
-   ↓
-Email
+Employee master `Employee ID` = Records `Emp_ID`
 ```
 
-User ID is the primary matching field.
-
-Email is used as a fallback.
+Only employees whose `Employee Status` value is `Terminated` are processed. Values such as `Active` and `On Leave` are not processed.
 
 ---
 
@@ -257,7 +251,7 @@ Row 12 is retained.
 
 Rows 10 and 11 are deleted.
 
-The User ID in row 12 is kept and every other column is cleared.
+The `Id` value in row 12 is kept and every other column is cleared.
 
 If the requirement changes to keep the record with the latest date/timestamp, the processing logic should be changed to use the appropriate date/timestamp column.
 
@@ -307,13 +301,10 @@ Default values:
 Employee sheet:       Sheet1
 Records sheet:        Sheet1
 
-Employee User ID:     User ID
-Employee Email:       Email
-Terminated column:    Terminated
-Terminated value:     Yes
-
-Records User ID:      User ID
-Records Email:        Email
+Employee ID column:        Employee ID
+Employee status column:   Employee Status
+Records employee ID:      Emp_ID
+Records Id column to keep: Id
 ```
 
 These values can be changed from the application UI.

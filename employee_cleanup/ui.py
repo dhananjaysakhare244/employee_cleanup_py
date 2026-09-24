@@ -20,14 +20,10 @@ class EmployeeCleanupApp(tk.Tk):
         self.employee_sheet = tk.StringVar(value="Sheet1")
         self.records_sheet = tk.StringVar(value="Sheet1")
 
-        self.employee_user_id = tk.StringVar(value="User ID")
-        self.employee_email = tk.StringVar(value="Email")
-        self.employee_terminated = tk.StringVar(value="Terminated")
-        self.terminated_value = tk.StringVar(value="Yes")
-
-        self.records_user_id = tk.StringVar(value="User ID")
-        self.records_email = tk.StringVar(value="Email")
-        self.blank_columns = tk.StringVar(value="User ID, Email")
+        self.employee_id_column = tk.StringVar(value="Employee ID")
+        self.employee_status = tk.StringVar(value="Employee Status")
+        self.records_employee_id_column = tk.StringVar(value="Emp_ID")
+        self.records_id = tk.StringVar(value="Id")
 
         self.status = tk.StringVar(value="Ready")
 
@@ -65,13 +61,10 @@ class EmployeeCleanupApp(tk.Tk):
         fields = [
             ("Employee sheet", self.employee_sheet),
             ("Records sheet", self.records_sheet),
-            ("Employee User ID", self.employee_user_id),
-            ("Employee Email", self.employee_email),
-            ("Terminated column", self.employee_terminated),
-            ("Terminated value", self.terminated_value),
-            ("Records User ID", self.records_user_id),
-            ("Records Email", self.records_email),
-            ("Columns to blank", self.blank_columns),
+            ("Employee ID column", self.employee_id_column),
+            ("Employee status column", self.employee_status),
+            ("Records employee ID column", self.records_employee_id_column),
+            ("Records Id column to keep", self.records_id),
         ]
 
         for i, (label, variable) in enumerate(fields):
@@ -98,11 +91,11 @@ class EmployeeCleanupApp(tk.Tk):
         ttk.Label(
             rules,
             text=(
-                "1. Find employees where Terminated equals the configured value.\n"
-                "2. Match records by User ID, with Email as fallback.\n"
+                "1. Select employees whose Employee Status is Terminated.\n"
+                "2. Match Employee ID to the records Emp_ID column.\n"
                 "3. For each terminated employee, keep only the physically last matching row.\n"
                 "4. Delete earlier matching rows.\n"
-                "5. Blank the configured columns in the retained row.\n"
+                "5. Keep only the records Id value in the retained row.\n"
                 "6. Add a Processing Log sheet.\n"
                 "7. Never modify the original input files."
             ),
@@ -212,12 +205,6 @@ class EmployeeCleanupApp(tk.Tk):
 
                 self.output_file.set(output)
 
-            blank_columns = [
-                x.strip()
-                for x in self.blank_columns.get().split(",")
-                if x.strip()
-            ]
-
             self.process_button.config(state="disabled")
             self.status.set("Processing...")
 
@@ -229,13 +216,10 @@ class EmployeeCleanupApp(tk.Tk):
                 output_file=output,
                 employee_sheet=self.employee_sheet.get(),
                 records_sheet=self.records_sheet.get(),
-                employee_user_id=self.employee_user_id.get(),
-                employee_email=self.employee_email.get(),
-                employee_terminated=self.employee_terminated.get(),
-                terminated_value=self.terminated_value.get(),
-                records_user_id=self.records_user_id.get(),
-                records_email=self.records_email.get(),
-                blank_columns=blank_columns,
+                employee_id_column=self.employee_id_column.get(),
+                employee_status=self.employee_status.get(),
+                records_employee_id_column=self.records_employee_id_column.get(),
+                records_id=self.records_id.get(),
             )
 
             self.status.set("Processing completed successfully.")
